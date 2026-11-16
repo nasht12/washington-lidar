@@ -10,7 +10,49 @@ canvas{display:block}#hud{position:fixed;left:18px;bottom:16px;max-width:420px;o
 <link rel="stylesheet" href="../viewer-ui/viewer-ui.css">
 <script src="../viewer-ui/viewer-ui-handoff.js"></script>
 <style>#hud,body>a,#style,#lightbtn{display:none!important}canvas{touch-action:none}</style>
+<style>
+#loading-screen { position:fixed; inset:0; z-index:25; display:flex; align-items:center; justify-content:center; padding:24px; background:#05070c; color:#e8e8e1; font:14px/1.6 system-ui,sans-serif; }
+#loading-screen[hidden] { display:none; }
+.loading-card { width:min(100%,360px); }
+.loading-card h1 { font-size:24px; font-weight:500; margin:0 0 8px; }
+.loading-card p { color:#aeb6c0; margin:0 0 16px; }
+.loading-card progress { width:100%; height:6px; accent-color:#e0b864; }
+#loading-retry { margin-top:20px; padding:10px 16px; border:1px solid #83909e; border-radius:8px; background:transparent; color:white; cursor:pointer; }
+#loading-retry[hidden] { display:none; }
+</style>
 </head><body>
+<div id="loading-screen" role="status" aria-live="polite"><div class="loading-card">
+<h1>Seattle in LiDAR</h1><p id="loading-message">Preparing the 3D viewer…</p>
+<progress id="loading-progress" aria-label="Point cloud download"></progress>
+<button id="loading-retry" hidden type="button" onclick="location.reload()">Try again</button>
+</div></div>
+<script>
+(function () {
+  const message = document.getElementById('loading-message');
+  const progress = document.getElementById('loading-progress');
+  const retry = document.getElementById('loading-retry');
+  let failed = false;
+  window.lidarLoading = {
+    message: text => { if (!failed) message.textContent = text; },
+    progress: (loaded, total) => {
+      if (failed) return;
+      if (total) { progress.max = total; progress.value = loaded; }
+      else progress.removeAttribute('value');
+      message.textContent = 'Downloading the point cloud · ' + (loaded / 1048576).toFixed(1) + (total ? ' / ' + (total / 1048576).toFixed(1) : '') + ' MB';
+    },
+    ready: () => { document.getElementById('loading-screen').hidden = true; },
+    fail: () => {
+      failed = true;
+      message.textContent = 'The 3D viewer could not load. Check your connection and browser support for WebGL, then try again.';
+      progress.hidden = true;
+      retry.hidden = false;
+      document.getElementById('loading-screen').setAttribute('role', 'alert');
+    }
+  };
+  window.addEventListener('error', window.lidarLoading.fail);
+  window.addEventListener('unhandledrejection', window.lidarLoading.fail);
+})();
+</script>
 <div id="hud"><b>Seattle, 3,230,671 LiDAR points</b><br>King County West 2021 &middot; colored by height above ground &middot; water removed<br>
 drag to orbit &middot; right-drag to pan &middot; scroll to zoom<br><span id="status">loading&hellip;</span></div>
 <script type="module">
@@ -18,8 +60,33 @@ import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 THREE.ColorManagement.enabled = false;
 const status = document.getElementById('status');
-const meta = await (await fetch('points.json')).json();
-const buf = await (await fetch('points.bin')).arrayBuffer();
+const metadataResponse = await fetch('points.json');
+if (!metadataResponse.ok) throw new Error('Point metadata unavailable');
+const meta = await metadataResponse.json();
+const response = await fetch('points.bin');
+if (!response.ok) throw new Error('Point data unavailable');
+const total = Number(response.headers.get('content-length')) || meta.count * 11;
+let buf;
+if (response.body && response.body.getReader) {
+  const reader = response.body.getReader();
+  const chunks = [];
+  let loaded = 0;
+  while (true) {
+    const {done, value} = await reader.read();
+    if (done) break;
+    chunks.push(value);
+    loaded += value.byteLength;
+    window.lidarLoading.progress(loaded, total);
+  }
+  const bytes = new Uint8Array(loaded);
+  let offset = 0;
+  for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
+  buf = bytes.buffer;
+} else {
+  window.lidarLoading.message('Downloading the point cloud…');
+  buf = await response.arrayBuffer();
+}
+window.lidarLoading.message('Preparing 3D points…');
 const n = meta.count;
 const q = new Uint16Array(buf, 0, n * 3);
 const col = new Uint8Array(buf, n * 6, n * 3);
@@ -358,5 +425,6 @@ renderer.setAnimationLoop(now => {
   const dt = lastT ? Math.min((now - lastT) / 1000, 0.05) : 0; lastT = now;
   if (window.__lightOn) mat.uniforms.lphase.value = (mat.uniforms.lphase.value + dt / 12) % 1;
   controls.update(); renderer.render(scene, camera);
+  window.lidarLoading.ready();
 });
 </script></body></html>
