@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Washington in LiDAR</title><meta name="description" content="Point-cloud and shaded-relief studies of Seattle and Mount Rainier from LiDAR data."><link rel="stylesheet" href="style.css"><style>
+body{overflow:auto;min-height:100vh}.lidar-main{max-width:1400px;margin:auto;padding:145px 5vw 80px}.lidar-main h1{font-size:clamp(36px,6vw,80px);letter-spacing:-.055em;font-weight:400;margin:16px 0 20px}.lead{max-width:620px;line-height:1.65;margin-bottom:34px}.study{margin:0 0 48px}.study img{display:block;width:100%;height:auto;border-radius:3px}.study figcaption{display:flex;gap:18px;line-height:1.6;padding-top:12px;font-size:14px}.study figcaption strong{font-weight:500;white-space:nowrap}.study figcaption span{color:#55534d}.source{border-top:1px solid #aaa69b;padding-top:24px;font-size:13px;line-height:1.8;margin-top:30px}.source a{color:inherit}.row{display:flex;gap:12px;align-items:flex-start}.row img{flex-basis:0;min-width:0}.study.narrow{max-width:900px;margin-left:auto;margin-right:auto}
+.tabbar{position:sticky;top:72px;z-index:4;padding:12px 0;margin-bottom:34px;background:#e7e3daf2;border-bottom:1px solid #aaa69b80}.tabs{display:flex;flex-wrap:wrap;gap:6px}.tabs.sub{margin-top:9px;gap:2px}.tabs.sub[hidden]{display:none}.tabs.sub button{border-color:transparent;padding:6px 11px;color:#55534d}.tabs.sub button[aria-selected="true"]{background:#292a2514;color:#292a25;border-color:#292a2540}.tabs button{font:11px 'DM Mono',monospace;letter-spacing:.04em;padding:8px 13px;border:1px solid #292a2530;border-radius:20px;background:transparent;color:#292a25}.tabs button:hover{background:#ffffff66}.tabs button[aria-selected="true"]{background:#292a25;color:#f2f0e9;border-color:#292a25}.panel[hidden]{display:none}.panel-note{font-size:14px;color:#55534d;margin:-14px 0 30px;max-width:620px;line-height:1.6}.viewer-card{display:block;position:relative}.viewer-card span{position:absolute;left:18px;bottom:18px;background:#292a25;color:#f2f0e9;font:11px 'DM Mono',monospace;padding:11px 16px;border-radius:20px}
+@media(max-width:600px){.lidar-main{padding-top:115px}.study figcaption{display:block}.study figcaption span{display:block;margin-top:4px}.study{margin-bottom:34px}header nav{gap:15px}.row{flex-direction:column}.row img{flex:none!important;width:100%}.tabbar{top:56px;margin-left:-5vw;margin-right:-5vw}.tabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding:0 5vw}.tabs button{flex:none}}
+
+.row.four{gap:8px}@media(max-width:600px){.row.four{flex-direction:row;flex-wrap:wrap}.row.four img{flex:0 0 calc(50% - 4px)!important;width:calc(50% - 4px)}}
+.explore{margin:-20px 0 40px}.explore p{font-size:14px;color:#55534d;margin:0 0 12px}.chips{display:flex;flex-wrap:wrap;gap:6px}.chips a{font:11px 'DM Mono',monospace;letter-spacing:.04em;padding:8px 13px;border:1px solid #292a2530;border-radius:20px;color:#292a25;text-decoration:none}.chips a:hover{background:#292a25;color:#f2f0e9}
+.study img{cursor:zoom-in}.viewer-card img{cursor:pointer}
+.lb{position:fixed;inset:0;z-index:50;background:#0b0b0af2;display:flex;flex-direction:column;opacity:0;transition:opacity .2s;touch-action:none}
+.lb.on{opacity:1}.lb[hidden]{display:none}
+.lb-stage{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:56px 72px 8px;overflow:hidden}
+.lb-stage img{max-width:100%;max-height:100%;object-fit:contain;border-radius:2px;user-select:none;-webkit-user-drag:none;transition:transform .25s ease,opacity .25s ease}
+.lb-cap{color:#e9e6dd;font-size:14px;line-height:1.5;padding:10px 72px 22px;text-align:center;min-height:44px}.lb-cap span{color:#a9a69c;margin-left:10px}
+.lb button{position:absolute;background:#ffffff14;color:#f2f0e9;border:1px solid #ffffff26;border-radius:50%;width:44px;height:44px;font:20px/1 system-ui,sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.lb button:hover{background:#ffffff2e}.lb-close{top:14px;right:16px}.lb-prev{left:16px;top:50%;transform:translateY(-50%)}.lb-next{right:16px;top:50%;transform:translateY(-50%)}
+.lb-count{position:absolute;top:26px;left:20px;color:#a9a69c;font:11px 'DM Mono',monospace;letter-spacing:.06em}
+@media(max-width:600px){.lb-stage{padding:56px 0 6px}.lb-prev,.lb-next{display:none!important}.lb-cap{padding:8px 18px 20px}.lb-cap span{display:block;margin:2px 0 0}}
+.embed{position:relative;height:620px;min-height:420px;border-radius:6px;overflow:hidden;background:#05070c}.embed iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}.embed[hidden]{display:none}.embed-note{font-size:14px;color:#55534d;line-height:1.6;margin:12px 0 40px}.embed-note a{color:inherit;white-space:nowrap;margin-left:6px}.gal-h{font:11px 'DM Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:#55534d;font-weight:400;margin:56px 0 18px;padding-top:14px;border-top:1px solid #aaa69b80;scroll-margin-top:200px}.gal-h:first-child{margin-top:0}@media(max-width:600px){.embed{margin-left:-5vw;margin-right:-5vw;border-radius:0}}
+/* tab bar: docks exactly under the fixed header, solid and full-bleed so nothing shows at its edges; while a 3D viewer is open it scrolls with the page instead, so it never sits on the viewer */.lidar-main{--hdr:72px}.tabbar{top:var(--hdr);background:#e7e3da;box-shadow:0 0 0 100vmax #e7e3da;clip-path:inset(0 -100vmax);border-bottom:0;border-image:linear-gradient(#aaa69b80 0 0) 0 0 1 0/0 0 1px 0/0 100vmax}.viewing .tabbar{position:relative;top:auto}.content-page header{background:#e7e3da}.tabs.sub button{white-space:nowrap}@media(max-width:900px){.study figcaption strong{white-space:normal}}.gal-h{scroll-margin-top:calc(var(--hdr) + 140px)}@media(max-width:600px){.tabbar{top:var(--hdr)}.tabs.sub{flex-wrap:nowrap;overflow-x:auto}}
+</style></head><body class="content-page"><a class="skip-link" href="#content">Skip to content</a><header><a class="wordmark" href="index.html">WASHINGTON IN LiDAR</a><nav aria-label="Demo navigation"><a href="#seattle">Seattle</a><a href="#rainier">Mount Rainier</a></nav></header><main class="lidar-main" id="content"><h1>Washington in LiDAR.</h1>
+<p class="lead">Seattle and Mount Rainier reconstructed from LiDAR: height-colored point clouds, angled city models, and shaded relief. Studies in translating elevation and laser-scan data into readable visual landscapes.</p>
+
+<div class="tabbar">
+<div class="tabs" role="tablist" aria-label="Areas">
+<button role="tab" id="t-seattle" aria-controls="seattle">Seattle</button>
+<button role="tab" id="t-rainier" aria-controls="rainier">Mount Rainier</button>
+</div>
+<div class="tabs sub" id="seattle-sub" role="tablist" aria-label="Seattle viewers and gallery">
+<button role="tab" id="t-seattle-city" aria-controls="seattle">City</button>
+<button role="tab" id="t-smith-tower" aria-controls="smith-tower">Smith Tower</button>
+<button role="tab" id="t-pioneer-square" aria-controls="pioneer-square">Pioneer Square</button>
+<button role="tab" id="t-columbia-center" aria-controls="columbia-center">Columbia Center</button>
+<button role="tab" id="t-central-library" aria-controls="central-library">Central Library</button>
+<button role="tab" id="t-pike-place" aria-controls="pike-place">Pike Place Market</button>
+<button role="tab" id="t-great-wheel" aria-controls="great-wheel">Great Wheel</button>
+<button role="tab" id="t-amazon-spheres" aria-controls="amazon-spheres">Amazon Spheres</button>
+<button role="tab" id="t-space-needle" aria-controls="space-needle">Space Needle</button>
+<button role="tab" id="t-science-center" aria-controls="science-center">Pacific Science Center</button>
+<button role="tab" id="t-climate-pledge" aria-controls="climate-pledge">Climate Pledge Arena</button>
+<button role="tab" id="t-lumen-field" aria-controls="lumen-field">Lumen Field</button>
+<button role="tab" id="t-green-lake-canopy" aria-controls="green-lake-canopy">Green Lake canopy</button>
+<button role="tab" id="t-arboretum" aria-controls="arboretum">Arboretum grove</button>
+<button role="tab" id="t-gallery" aria-controls="gallery">Gallery</button>
+</div>
+</div>
+<div class="embed" id="viewer-stage" hidden></div>
+
+<section class="panel" id="seattle" role="tabpanel" aria-labelledby="t-seattle-city" data-page="lidar-viewer/">
+<p class="embed-note">2.5 million points, water removed, the budget weighted toward towers. Hover a landmark and click to fly in. <a href="lidar-viewer/">Full screen ↗</a></p>
+</section>
+
+<section class="panel" id="smith-tower" role="tabpanel" aria-labelledby="t-smith-tower" hidden data-page="landmarks/smith-tower/">
+<p class="embed-note">Every scanned point, with the city around it. Switch between sun, frost, height and true colour. <a href="landmarks/smith-tower/">Full screen ↗</a></p>
+</section>
+
+<section class="panel" id="pioneer-square" role="tabpanel" aria-labelledby="t-pioneer-square" hidden data-page="landmarks/pioneer-square-block/">
+<p class="embed-note">Every scanned point, with the city around it. Switch between sun, frost, height and true colour. <a href="landmarks/pioneer-square-block/">Full screen ↗</a></p>
+</section>
+
+<section class="panel" id="columbia-center" role="tabpanel" aria-labelledby="t-columbia-center" hidden data-page="landmarks/columbia-center/">
+<p class="embed-note">Every scanned point, with the city around it. Switch between sun, frost, height and true colour. <a href="landmarks/columbia-center/">Full screen ↗</a></p>
+</section>
+
+<section class="panel" id="central-library" role="tabpanel" aria-labelledby="t-central-library" hidden data-page="landmarks/central-library/">
+<p class="embed-note">Every scanned point, with the city around it. Switch between sun, frost, height and true colour. <a href="landmarks/central-library/">Full screen ↗</a></p>
+</section>
+
+<section class="panel" id="pike-place" role="tabpanel" aria-labelledby="t-pike-place" hidden data-page="landmarks/pike-place-market/">
+<p class="embed-note">Every scanned point, with the city around it. Switch between sun, frost, height and true colour. <a href="landmarks/pike-place-market/">Full screen ↗</a></p>
+</section>
+
+<section class="panel" id="great-wheel" role="tabpanel" aria-labelledby="t-great-wheel" hidden data-page="landmarks/great-wheel/">
+<p class="embed-note">Every scanned point, with the city around it. Switch between sun, frost, height and true colour. <a href="landmarks/great-wheel/">Full screen ↗</a></p>
+</section>
+
+<section class="panel" id="amazon-spheres" role="tabpanel" aria-labelledby="t-amazon-spheres" hidden data-page="landmarks/amazon-spheres/">
+<p class="embed-note">Every scanned point, with the city around it. Switch between sun, frost, height and true colour. <a href="landmarks/amazon-spheres/">Full screen ↗</a></p>
+</section>
+
+<section class="panel" id="space-needle" role="tabpanel" aria-labelledby="t-space-needle" hidden data-page="landmarks/space-needle/">
+<p class="embed-note">Every scanned point, with the city around it. Switch between sun, frost, height and true colour. <a href="landmarks/space-needle/">Full screen ↗</a></p>
+</section>
+
+<section class="panel" id="science-center" role="tabpanel" aria-labelledby="t-science-center" hidden data-page="landmarks/psc-arches/">
+<p class="embed-note">Every scanned point, with the city around it. Switch between sun, frost, height and true colour. <a href="landmarks/psc-arches/">Full screen ↗</a></p>
+</section>
+
+<section class="panel" id="climate-pledge" role="tabpanel" aria-labelledby="t-climate-pledge" hidden data-page="landmarks/climate-pledge-arena/">
+<p class="embed-note">Every scanned point, with the city around it. Switch between sun, frost, height and true colour. <a href="landmarks/climate-pledge-arena/">Full screen ↗</a></p>
+</section>
+
+<section class="panel" id="lumen-field" role="tabpanel" aria-labelledby="t-lumen-field" hidden data-page="landmarks/lumen-field/">
+<p class="embed-note">Every scanned point, with the city around it. Switch between sun, frost, height and true colour. <a href="landmarks/lumen-field/">Full screen ↗</a></p>
+</section>
+
+<section class="panel" id="green-lake-canopy" role="tabpanel" aria-labelledby="t-green-lake-canopy" hidden data-page="green-lake/">
+<p class="embed-note">Every scanned point, with the city around it. Switch between sun, frost, height and true colour. <a href="green-lake/">Full screen ↗</a></p>
+</section>
+
+<section class="panel" id="arboretum" role="tabpanel" aria-labelledby="t-arboretum" hidden data-page="arboretum-grove/">
+<p class="embed-note">Every scanned point, with the city around it. Switch between sun, frost, height and true colour. <a href="arboretum-grove/">Full screen ↗</a></p>
+</section>
+
+<section class="panel" id="gallery" role="tabpanel" aria-labelledby="t-gallery" hidden>
+<h2 class="gal-h" id="g-overview">Seattle</h2>
+<figure class="study"><img src="media/lidar-studies/point-cloud.webp" alt="Seattle towers rendered as a dense point cloud, colored from blue at ground level to orange at the tallest rooftops." loading="lazy"><figcaption><strong>Point-cloud city</strong><span>A flythrough frame. Every dot is one laser return, colored by height.</span></figcaption></figure>
+<figure class="study"><img src="media/lidar-studies/city-model.webp" alt="Angled white relief model of downtown Seattle with blue waterfront." loading="lazy"><figcaption><strong>City as a model</strong><span>The elevation surface tilted and lit like an architect's model.</span></figcaption></figure>
+<figure class="study"><img src="media/lidar-studies/shaded-relief.webp" alt="Overhead shaded-relief view of downtown Seattle with warm directional lighting." loading="lazy"><figcaption><strong>Light on relief</strong><span>Top-down elevation under directional light.</span></figcaption></figure>
+<h2 class="gal-h" id="g-landmarks">Landmarks</h2>
+<figure class="study"><div class="row four"><img style="flex-grow:4.607" src="media/lidar-studies/landmarks/smith-tower-sun.webp" alt="Smith Tower in sunlit points, its pyramid cap and west faces warm, the far side in blue shadow." width="645" height="1400" loading="lazy"><img style="flex-grow:3.186" src="media/lidar-studies/landmarks/space-needle-sun.webp" alt="The Space Needle in sunlit points, the saucer bright on top above the lattice legs." width="446" height="1400" loading="lazy"><img style="flex-grow:7.033" src="media/lidar-studies/landmarks/columbia-center-sun.webp" alt="Columbia Center in sunlit points, its setback roofs bright above one scanned wall, with the surrounding towers and streets in faint blue." width="960" height="1365" loading="lazy"><img style="flex-grow:7.766" src="media/lidar-studies/landmarks/green-lake-tree-sun.webp" alt="A lone Green Lake tree in sunlit points, light catching the top of the crown and the forked trunk." width="890" height="1146" loading="lazy"></div><figcaption><strong>Smith Tower, Space Needle, Columbia Center, Green Lake tree</strong><span>The saucer hid the Needle's upper legs from the plane; those points are filled in. Columbia's dark glass sends few pulses back, so its neighbours stay in, faint. The tree stands 101 ft on the north shore.</span></figcaption></figure>
+<h2 class="gal-h" id="g-downtown">Downtown &amp; port</h2>
+<figure class="study"><img src="media/lidar-studies/alki-points.webp" alt="The downtown Seattle skyline across Elliott Bay as a glowing point cloud." width="1800" height="754" loading="lazy"><figcaption><strong>From Alki</strong><span>The skyline across Elliott Bay, in points, on a long lens.</span></figcaption></figure>
+<figure class="study"><div class="row"><img style="flex-grow:2.4" src="media/lidar-studies/alki-golden.webp" alt="Warm-lit model of the downtown skyline across Elliott Bay." width="1800" height="750" loading="lazy"><img style="flex-grow:2.4" src="media/lidar-studies/alki-sunrise.webp" alt="The same skyline as a grey silhouette." width="1800" height="750" loading="lazy"></div><figcaption><strong>Golden hour / sunrise</strong><span>Same view, elevation surface, lit from the west then backlit.</span></figcaption></figure>
+<figure class="study"><img src="media/lidar-studies/studies/xray.webp" alt="Downtown towers as translucent glowing outlines seen from over Lake Union." width="1800" height="1013" loading="lazy"><figcaption><strong>X-ray</strong><span>Points add light instead of hiding each other, so towers turn translucent.</span></figcaption></figure>
+<figure class="study"><img src="media/lidar-studies/studies/bricks.webp" alt="Isometric model of downtown Seattle built from studded blocks." width="1800" height="1197" loading="lazy"><figcaption><strong>Brick city</strong><span>Heights pooled into 30 ft columns and drawn as studded blocks.</span></figcaption></figure>
+<figure class="study"><img src="media/lidar-studies/studies/sun-hours.webp" alt="Two maps of downtown colored by hours of direct sun on the winter and summer solstices." width="1800" height="976" loading="lazy"><figcaption><strong>Sun hours</strong><span>Direct sun per spot on the solstices: 2.7 h in December, 10 h in June (median).</span></figcaption></figure>
+<figure class="study narrow"><img src="media/lidar-studies/harbor-island.webp" alt="White relief model of Harbor Island: oil tanks, container cranes and ships." width="1238" height="1500" loading="lazy"><figcaption><strong>Harbor Island</strong><span>Tank farms, cranes and container yards on blue water.</span></figcaption></figure>
+<h2 class="gal-h" id="g-capitol-hill">Capitol Hill</h2>
+<figure class="study"><img src="media/lidar-studies/capitol-hill-from-south.webp" alt="Point-cloud panorama looking north: First Hill towers on the left, Capitol Hill rising on the right with its broadcast towers." width="1800" height="680" loading="lazy"><figcaption><strong>From the south</strong><span>First Hill's towers, then Capitol Hill rising over the Central District.</span></figcaption></figure>
+<figure class="study"><img src="media/lidar-studies/volunteer-park-frost.webp" alt="Volunteer Park reservoir ringed by trees, drawn in fine frosted blue and white points." width="1800" height="709" loading="lazy"><figcaption><strong>Volunteer Park</strong><span>The reservoir and its ring of trees, in fine frosted points.</span></figcaption></figure>
+<figure class="study narrow"><img src="media/lidar-studies/capitol-hill-relief.webp" alt="White relief model of Capitol Hill from above: Volunteer Park at the top, the street grid and I-5 along the west edge." width="1033" height="1500" loading="lazy"><figcaption><strong>From above</strong><span>Volunteer Park at the top, Cal Anderson and Pike/Pine below, I-5 along the west.</span></figcaption></figure>
+<h2 class="gal-h" id="g-seattle-center">Seattle Center</h2>
+<figure class="study"><img src="media/lidar-studies/seattle-center-needle.webp" alt="Aerial point-cloud view of the Space Needle above Seattle Center." width="1800" height="1012" loading="lazy"><figcaption><strong>Space Needle</strong><span>Laser points keep the open lattice legs a surface model fills solid.</span></figcaption></figure>
+<figure class="study"><div class="row"><img style="flex-grow:1.7787" src="media/lidar-studies/seattle-center-kerry-park.webp" alt="Point-cloud view from Kerry Park, the Needle in front of downtown." width="1800" height="1012" loading="lazy"><img style="flex-grow:.96" src="media/lidar-studies/seattle-center-plan.webp" alt="Top-down height map of Seattle Center." width="1440" height="1500" loading="lazy"></div><figcaption><strong>Kerry Park / plan</strong><span>The postcard angle, and the same ground from above.</span></figcaption></figure>
+<figure class="study"><img src="media/lidar-studies/studies/panorama.webp" alt="Equirectangular 360-degree panorama from the Space Needle deck in glowing points." width="2400" height="1200" loading="lazy"><figcaption><strong>360° from the deck</strong><span>Every point placed by bearing and angle from the observation deck.</span></figcaption></figure>
+<figure class="study narrow"><img src="media/lidar-studies/studies/little-planet.webp" alt="The same panorama folded into a small round planet." width="1200" height="1200" loading="lazy"><figcaption><strong>Little planet</strong><span>The panorama bent into a ring, ground at the center.</span></figcaption></figure>
+<h2 class="gal-h" id="g-lake-union">Lake Union &amp; Montlake</h2>
+<figure class="study"><div class="row"><img style="flex-grow:.952" src="media/lidar-studies/lake-union-intensity.webp" alt="Laser-intensity image of the south end of Lake Union." width="1428" height="1500" loading="lazy"><img style="flex-grow:.3387" src="media/lidar-studies/eastlake-houseboats.webp" alt="Eastlake floating homes in laser intensity." width="508" height="1500" loading="lazy"></div><figcaption><strong>Lake Union</strong><span>Laser return strength alone, which reads like a night photo. Right: Eastlake houseboats.</span></figcaption></figure>
+<figure class="study"><img src="media/lidar-studies/studies/montlake-intensity.webp" alt="Laser-intensity image of Montlake, Husky Stadium and the 520 bridge." width="1400" height="1329" loading="lazy"><figcaption><strong>Montlake</strong><span>Husky Stadium, the Cut and the 520 bridge, in intensity.</span></figcaption></figure>
+<h2 class="gal-h" id="g-green-lake">Green Lake</h2>
+<figure class="study"><img src="media/lidar-studies/studies/aerial-green-lake.webp" alt="Aerial point-cloud view of Green Lake ringed by trees." width="1800" height="1013" loading="lazy"><figcaption><strong>Aerial</strong><span>Points colored by height above ground, so trees glow and the hills stay calm.</span></figcaption></figure>
+<figure class="study"><div class="row"><img style="flex-grow:.8287" src="media/lidar-studies/green-lake-model.webp" alt="White relief model of Green Lake." width="1243" height="1500" loading="lazy"><img style="flex-grow:.8287" src="media/lidar-studies/green-lake-low-sun.webp" alt="Green Lake under a low sun." width="1243" height="1500" loading="lazy"></div><figcaption><strong>Midday / low sun</strong><span>The elevation surface under two lights.</span></figcaption></figure>
+<figure class="study narrow"><img src="media/lidar-studies/studies/green-lake-classes.webp" alt="Top-down map of Green Lake colored by point type: trees green, buildings white, ground tan." width="1336" height="1400" loading="lazy"><figcaption><strong>By point type</strong><span>Trees split the laser pulse; that's how they're told apart from roofs.</span></figcaption></figure>
+<h2 class="gal-h" id="g-ballard">Ballard</h2>
+<figure class="study"><div class="row"><img style="flex-grow:1.2649" src="media/lidar-studies/ballard-model.webp" alt="White relief model of Ballard and Salmon Bay." width="1800" height="1423" loading="lazy"><img style="flex-grow:1.2649" src="media/lidar-studies/ballard-low-sun.webp" alt="Ballard under a low sun." width="1800" height="1423" loading="lazy"></div><figcaption><strong>Salmon Bay</strong><span>The Locks to the Ballard Bridge, midday and low sun.</span></figcaption></figure>
+<figure class="study"><img src="media/lidar-studies/studies/stipple.webp" alt="Ballard drawn as a field of ink dots." width="1400" height="1162" loading="lazy"><figcaption><strong>Stipple</strong><span>220,000 dots placed by tone, ready for a pen plotter.</span></figcaption></figure>
+<figure class="study narrow"><img src="media/lidar-studies/studies/flood.webp" alt="Interbay and Ballard with bands of blue showing land under water at rising sea levels." width="1034" height="1400" loading="lazy"><figcaption><strong>Sea-level rise</strong><span>Ground reached by still water at +3 to +20 ft. Illustration only.</span></figcaption></figure>
+<h2 class="gal-h" id="g-city">Whole city</h2>
+<figure class="study"><img src="media/lidar-studies/studies/section.webp" alt="Long section cut from Green Lake to Elliott Bay through the Space Needle." width="2400" height="146" loading="lazy"><figcaption><strong>Section</strong><span>An 8-mile cut, Green Lake to Elliott Bay, through the Needle and downtown.</span></figcaption></figure>
+<figure class="study"><div class="row"><img style="flex-grow:.75" src="media/lidar-studies/studies/ridgelines.webp" alt="North Seattle as stacked white ridgelines on black." width="1050" height="1400" loading="lazy"><img style="flex-grow:1.2903" src="media/lidar-studies/studies/tanaka.webp" alt="Illuminated contour map of north Seattle." width="1400" height="1085" loading="lazy"></div><figcaption><strong>Ridgelines / contours</strong><span>Stacked height profiles, and contours lit white and black by slope.</span></figcaption></figure>
+<figure class="study"><img src="media/lidar-studies/studies/land-and-city.webp" alt="Side by side: bare earth with buildings removed, and buildings standing on flattened ground." width="1800" height="1179" loading="lazy"><figcaption><strong>Land / city</strong><span>Buildings removed to show the ridges, then the hills removed to show the buildings.</span></figcaption></figure>
+<figure class="study"><img src="media/lidar-studies/studies/viewshed.webp" alt="Map of everything visible from the Columbia Center observation deck." width="1400" height="1396" loading="lazy"><figcaption><strong>Viewshed</strong><span>What the Columbia Center deck can see: 42% of the map, lit.</span></figcaption></figure>
+<figure class="study"><img src="media/lidar-studies/studies/scan-anatomy.webp" alt="Three maps: flight passes, time flown, and share of split laser pulses." width="1800" height="795" loading="lazy"><figcaption><strong>Scan anatomy</strong><span>How the survey was flown: 12 passes on April 13, 2021, and where pulses split.</span></figcaption></figure>
+</section>
+
+<section class="panel" id="rainier" role="tabpanel" aria-labelledby="t-rainier" hidden>
+<p class="panel-note">The whole mountain from a bare-earth survey: 38 tiles, 22 GB of 1.5 ft elevation.</p>
+<figure class="study"><a class="viewer-card" href="rainier-viewer/index.html"><img src="media/lidar-studies/rainier/viewer.webp" alt="Mount Rainier in 3D seen from the north, glaciers white above green valleys." width="1800" height="1125" loading="lazy"><span>Open the Rainier viewer ↗</span></a><figcaption><strong>Interactive</strong><span>2.8 million points sampled every 46 ft. About a 20 MB download.</span></figcaption></figure>
+<figure class="study"><a class="viewer-card" href="rainier-viewer/index.html#style=points"><img src="media/lidar-studies/rainier/viewer-points.webp" alt="Mount Rainier as a point cloud, dots shading from teal valleys to a coral summit." width="1800" height="1125" loading="lazy"><span>Open as a point cloud ↗</span></a><figcaption><strong>Point-cloud view</strong><span>The same points, colored by elevation. Switch looks with the button in the viewer.</span></figcaption></figure>
+<figure class="study"><div class="row"><img style="flex-grow:1.0616" src="media/lidar-studies/rainier/white-model.webp" alt="White relief model of Mount Rainier and its radiating glacier valleys." width="1500" height="1413" loading="lazy"><img style="flex-grow:.9173" src="media/lidar-studies/rainier/summit.webp" alt="Close-up of the summit dome and its craters." width="1376" height="1500" loading="lazy"></div><figcaption><strong>Model / summit</strong><span>The full cone, and the summit craters up close.</span></figcaption></figure>
+<figure class="study"><div class="row"><img style="flex-grow:1.0608" src="media/lidar-studies/rainier/classic.webp" alt="Rainier shaded green to tan to white by elevation." width="1500" height="1414" loading="lazy"><img style="flex-grow:1.0608" src="media/lidar-studies/rainier/dusk.webp" alt="Rainier in dusk purples with the summit lit orange." width="1500" height="1414" loading="lazy"></div><figcaption><strong>Classic / dusk</strong><span>Colored by elevation, and lit like late evening.</span></figcaption></figure>
+<figure class="study"><div class="row"><img style="flex-grow:.75" src="media/lidar-studies/rainier/ridgelines.webp" alt="Mount Rainier as stacked white ridgelines on black." width="1050" height="1400" loading="lazy"><img style="flex-grow:1.0616" src="media/lidar-studies/rainier/stipple.webp" alt="Rainier drawn as a field of ink dots." width="1500" height="1413" loading="lazy"></div><figcaption><strong>Ridgelines / stipple</strong><span>Stacked height profiles, and 260,000 dots for a pen plotter.</span></figcaption></figure>
+<figure class="study"><img src="media/lidar-studies/rainier/ridgelines-side.webp" alt="Mount Rainier seen from the south as stacked white ridgelines, the cone rising above its foothills." width="1800" height="1125" loading="lazy"><figcaption><strong>Ridgelines, side on</strong><span>160 profiles seen from the south, so the cone rises out of its foothills.</span></figcaption></figure>
+<figure class="study"><img src="media/lidar-studies/rainier/stipple-side.webp" alt="Mount Rainier from the south drawn in ink dots, glacier ridges catching the light." width="1800" height="1125" loading="lazy"><figcaption><strong>Stipple, side on</strong><span>A perspective from the south, turned into 260,000 dots for a pen plotter.</span></figcaption></figure>
+<figure class="study"><img src="media/lidar-studies/rainier/sun-hours.webp" alt="Two maps of Rainier colored by hours of direct sun on the winter and summer solstices." width="1800" height="895" loading="lazy"><figcaption><strong>Sun hours</strong><span>Direct sun on the solstices. North walls stay dark all December.</span></figcaption></figure>
+<figure class="study"><div class="row"><img style="flex-grow:1" src="media/lidar-studies/rainier/viewshed-fremont.webp" alt="Map lit where the Mount Fremont Lookout can see." width="1400" height="1396" loading="lazy"><img style="flex-grow:1" src="media/lidar-studies/rainier/viewshed-paradise.webp" alt="Map lit where Paradise can see." width="1400" height="1396" loading="lazy"></div><figcaption><strong>Viewsheds</strong><span>What the Mount Fremont Lookout and Paradise can see, lit.</span></figcaption></figure>
+<figure class="study"><img src="media/lidar-studies/rainier/mowich.webp" alt="Perspective view of Rainier from the northwest above Mowich." width="1800" height="1013" loading="lazy"><figcaption><strong>From Mowich</strong><span>A perspective camera above the northwest foothills.</span></figcaption></figure>
+</section>
+
+
+
+<p class="source">Built with relief-renderer: Python relief and perspective renderers, and a GPU point-cloud renderer.<br>Data: King County West 2021 and Rainier Wali 2022 LiDAR, via the <a href="https://lidar.dnr.wa.gov/" target="_blank" rel="noopener">Washington Lidar Portal ↗</a>.<br><a href="index.html">Back to Seattle</a></p></main>
+<script>
+(() => {  // two levels: an area (Seattle, Mount Rainier); inside Seattle the city viewer, a tab per 3D viewer, and the gallery
+  const top = [...document.querySelectorAll('.tabs:not(.sub) [role="tab"]')];
+  const sub = [...document.querySelectorAll('.tabs.sub [role="tab"]')];
+  const subBar = document.getElementById('seattle-sub'), bar = document.querySelector('.tabbar');
+  const ids = [...document.querySelectorAll('.panel')].map(p => p.id);
+  const areaOf = id => id === 'rainier' ? 'rainier' : 'seattle';
+  // old links: the overview and landmarks went to what is now the city viewer; the neighborhoods to their gallery section
+  const legacy = {viewer: 'seattle', overview: 'seattle', landmarks: 'seattle'};
+  const gallerySection = ['downtown', 'capitol-hill', 'seattle-center', 'lake-union', 'green-lake', 'ballard', 'city'];
+  const reveal = t => {  // keep the selected tab visible in the sideways-scrolling bar on phones
+    const r = t.parentElement;
+    if (t.offsetLeft + t.offsetWidth > r.scrollLeft + r.clientWidth || t.offsetLeft < r.scrollLeft) r.scrollLeft = t.offsetLeft - 24;
+  };
+  // the City and landmark tabs share one viewer frame. Switching between them moves the camera the way
+  // the city's hotspots do: from the city it flies in to the landmark; back to City it flies out again;
+  // landmark to landmark it flies out to the city and on in to the next. A deep link opens its viewer directly.
+  const stage = document.getElementById('viewer-stage');
+  const pageOf = id => { const p = document.getElementById(id); return p && p.dataset.page; };
+  const abs = u => new URL(u, location.href).pathname;
+  const cityPath = abs(pageOf('seattle'));
+  let frame = null, after = null, current = null;
+  const main = bar.parentElement, header = document.querySelector('header');
+  const fit = () => {
+    const hdr = header ? Math.ceil(header.getBoundingClientRect().height) : 72;
+    main.style.setProperty('--hdr', hdr + 'px');
+    if (stage.hidden) return;
+    // scrolled to the viewer, it fills the window under the header; phones keep a strip above and
+    // below it, so the page can still be scrolled past a viewer that takes every touch
+    const h = innerWidth <= 600 ? Math.min(innerHeight * 0.72, innerHeight - hdr - 90) : innerHeight - hdr - 28;
+    stage.style.height = Math.round(Math.max(320, h)) + 'px';
+  };
+  const framePath = () => { try { return frame.contentWindow.location.pathname; } catch (e) { return ''; } };
+  const cityGo = url => {  // ask the city to fly to that viewer, once its code is up (it waits until settled)
+    const t0 = performance.now();
+    (function poll() {
+      let w = null; try { w = frame && frame.contentWindow; } catch (e) {}
+      if (w && w.__lidarGo && w.location.pathname === cityPath) w.__lidarGo(new URL(url, location.href).href);
+      else if (frame && performance.now() - t0 < 60000) setTimeout(poll, 120);
+    })();
+  };
+  const tabOfPath = path => ids.find(i => pageOf(i) && abs(pageOf(i)) === path);
+  const drive = id => {   // make the frame show this tab's viewer
+    const want = pageOf(id);
+    if (!frame) {
+      frame = document.createElement('iframe');
+      frame.title = 'LiDAR 3D viewer'; frame.allow = 'fullscreen'; frame.src = want;
+      frame.addEventListener('load', () => {   // the frame moved on its own (a hotspot, its back arrow): follow it
+        const path = framePath();
+        if (after && path === cityPath) { const u = after; after = null; cityGo(u); return; }
+        if (after) return;
+        const t = tabOfPath(path);
+        if (t && t !== current) { history.replaceState(null, '', '#' + t); show(t); }
+      });
+      stage.append(frame); return;
+    }
+    const cur = framePath();
+    if (cur === abs(want)) { after = null; return; }
+    if (cur === cityPath) { cityGo(want); return; }
+    // on a landmark: back out to the city (flying, if it was flown into), then on to the next one
+    after = id === 'seattle' ? null : want;
+    let back = null; try { back = frame.contentDocument.querySelector('.vui-back'); } catch (e) {}
+    if (back) back.click(); else frame.src = pageOf('seattle');
+  };
+  const show = id => {
+    current = id;
+    ids.forEach(p => document.getElementById(p).hidden = p !== id);
+    const viewer = !!pageOf(id);
+    stage.hidden = !viewer; main.classList.toggle('viewing', viewer);
+    if (viewer) drive(id);
+    else if (frame) { frame.remove(); frame = null; after = null; }   // one WebGL page at a time
+    fit();
+    const area = areaOf(id);
+    top.forEach(t => { const on = t.getAttribute('aria-controls') === area; t.setAttribute('aria-selected', on); t.tabIndex = on ? 0 : -1; if (on) reveal(t); });
+    subBar.hidden = area !== 'seattle';
+    sub.forEach(t => { const on = t.getAttribute('aria-controls') === id; t.setAttribute('aria-selected', on); t.tabIndex = on ? 0 : -1; if (on) reveal(t); });
+  };
+  const fromHash = () => {
+    const h = location.hash.slice(1);
+    if (gallerySection.includes(h)) return ['gallery', 'g-' + h];
+    return [legacy[h] || (ids.includes(h) ? h : 'seattle')];
+  };
+  const route = () => {
+    const [id, section] = fromHash(); show(id);
+    if (section) document.getElementById(section).scrollIntoView();
+  };
+  const pick = id => {
+    history.replaceState(null, '', '#' + id); show(id);
+    const h1 = bar.previousElementSibling;   // the bar's own offset moves while it is stuck, so measure from the intro above it
+    const y = h1.offsetTop + h1.offsetHeight + parseFloat(getComputedStyle(h1).marginBottom) - parseFloat(getComputedStyle(main).getPropertyValue('--hdr'));  // back to the top of the studies
+    if (scrollY > y) scrollTo({top: y});
+  };
+  [top, sub].forEach(group => group.forEach((t, i) => {
+    t.addEventListener('click', () => pick(t.getAttribute('aria-controls')));
+    t.addEventListener('keydown', e => {
+      const d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+      if (d) { const n = group[(i + d + group.length) % group.length]; n.focus(); pick(n.getAttribute('aria-controls')); }
+    });
+  }));
+  addEventListener('hashchange', route);
+  addEventListener('resize', fit);
+  route();
+})();
+</script>
+<div class="lb" id="lb" hidden role="dialog" aria-modal="true" aria-label="Image viewer"><span class="lb-count" id="lb-count"></span><button class="lb-close" id="lb-close" aria-label="Close">&#x2715;</button><button class="lb-prev" id="lb-prev" aria-label="Previous image">&#x2039;</button><button class="lb-next" id="lb-next" aria-label="Next image">&#x203A;</button><div class="lb-stage" id="lb-stage"><img id="lb-img" alt=""></div><div class="lb-cap" id="lb-cap"></div></div>
+<script>
+(() => {  // full-screen viewer: click an image; arrows, swipe or keys to slide; Esc, x or swipe down to close
+  const lb = document.getElementById('lb'), img = document.getElementById('lb-img'), cap = document.getElementById('lb-cap');
+  const count = document.getElementById('lb-count'), stage = document.getElementById('lb-stage');
+  const prevBtn = document.getElementById('lb-prev'), nextBtn = document.getElementById('lb-next');
+  let list = [], i = 0, opener = null, pushed = false;
+  const caption = el => {
+    const f = el.closest('figure'), st = f && f.querySelector('figcaption strong'), sp = f && f.querySelector('figcaption span');
+    const row = el.closest('.row'), multi = row && row.querySelectorAll('img').length > 1;
+    return {title: st ? st.textContent : '', text: multi ? el.alt : (sp ? sp.textContent : el.alt)};
+  };
+  const render = (dir = 0) => {
+    const el = list[i], c = caption(el);
+    const swap = () => {
+      img.src = el.currentSrc || el.src; img.alt = el.alt;
+      cap.innerHTML = ''; const b = document.createElement('strong'); b.textContent = c.title;
+      const s = document.createElement('span'); s.textContent = c.text; cap.append(b, s);
+      count.textContent = list.length > 1 ? `${i + 1} / ${list.length}` : '';
+      prevBtn.hidden = nextBtn.hidden = list.length < 2;
+      img.style.transition = 'none'; img.style.transform = `translateX(${dir * 60}px)`; img.style.opacity = dir ? 0 : 1;
+      void img.offsetWidth;  // commit the start position, then animate in
+      img.style.transition = ''; img.style.transform = ''; img.style.opacity = 1;
+      [list[i + 1], list[i - 1]].forEach(n => { if (n) new Image().src = n.currentSrc || n.src; });
+    };
+    if (dir) { img.style.transform = `translateX(${-dir * 60}px)`; img.style.opacity = 0; setTimeout(swap, 150); } else swap();
+  };
+  const go = d => { if (list.length > 1) { i = (i + d + list.length) % list.length; render(d); } };
+  const open = el => {
+    const panel = el.closest('.panel');
+    list = [...panel.querySelectorAll('.study img')].filter(x => !x.closest('.viewer-card'));
+    i = list.indexOf(el); opener = el;
+    lb.hidden = false; document.body.style.overflow = 'hidden';
+    void lb.offsetWidth; lb.classList.add('on');
+    render(); document.getElementById('lb-close').focus();
+    history.pushState({lb: 1}, ''); pushed = true;  // phone back button closes it
+  };
+  const close = (fromPop = false) => {
+    if (lb.hidden) return;
+    lb.classList.remove('on'); document.body.style.overflow = '';
+    setTimeout(() => { lb.hidden = true; img.removeAttribute('src'); }, 200);
+    if (pushed && !fromPop) history.back();
+    pushed = false; if (opener) opener.focus({preventScroll: true});
+  };
+  document.querySelectorAll('.panel .study img').forEach(el => {
+    if (el.closest('.viewer-card')) return;
+    el.tabIndex = 0; el.setAttribute('role', 'button');
+    el.addEventListener('click', () => open(el));
+    el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(el); } });
+  });
+  document.getElementById('lb-close').onclick = () => close();
+  prevBtn.onclick = () => go(-1); nextBtn.onclick = () => go(1);
+  stage.addEventListener('click', e => { if (e.target === stage && !dragged) close(); });
+  addEventListener('popstate', () => close(true));
+  addEventListener('keydown', e => {
+    if (lb.hidden) return;
+    if (e.key === 'Escape') close(); else if (e.key === 'ArrowRight') go(1); else if (e.key === 'ArrowLeft') go(-1);
+  });
+  let x0 = null, y0 = 0, dragged = false;
+  lb.addEventListener('pointerdown', e => { if (e.target.closest('button')) return; x0 = e.clientX; y0 = e.clientY; dragged = false; img.style.transition = 'none'; });
+  lb.addEventListener('pointermove', e => {
+    if (x0 === null) return;
+    const dx = e.clientX - x0, dy = e.clientY - y0;
+    img.style.transform = Math.abs(dx) > Math.abs(dy) ? `translateX(${dx}px)` : `translateY(${Math.max(0, dy)}px)`;
+  });
+  const end = e => {
+    if (x0 === null) return;
+    const dx = e.clientX - x0, dy = e.clientY - y0; x0 = null; img.style.transition = '';
+    dragged = Math.hypot(dx, dy) > 8;
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) go(dx < 0 ? 1 : -1);
+    else if (dy > 90 && dy > Math.abs(dx)) close();
+    else img.style.transform = '';
+  };
+  lb.addEventListener('pointerup', end); lb.addEventListener('pointercancel', end);
+})();
+</script></body></html>
+
